@@ -1,0 +1,95 @@
+--Problem Statement
+/*
+Samantha interviews many candidates from different colleges using coding challenges and contests. 
+Write a query to print the contest_id, hacker_id, name, and the sums of total_submissions, total_accepted_submissions, 
+total_views, and total_unique_views for each contest sorted by contest_id. Exclude the contest from the result if all 
+four sums are 0.
+
+Contests:
++-------------+------------+
+| Column      |   Type     |
++-------------+------------+
+|contest_id   | INTEGER    |
+|hacker_id    | INTEGER    |
+|name         | STRING     |
++-------------+------------+
+
+Colleges: 
++-------------+------------+
+| Column      |   Type     |
++-------------+------------+
+|contest_id   | INTEGER    |
+|college_id   | INTEGER    |
++-------------+------------+
+
+Challenges: 
++-------------+------------+
+| Column      |   Type     |
++-------------+------------+
+|college_id   | INTEGER    |
+|challenge_id | INTEGER    |
++-------------+------------+
+
+View_Stats: 
++-----------------+------------+
+| Column          |   Type     |
++-----------------+------------+
+|challenge_id     | INTEGER    |
+|total_views      | INTEGER    |
+|total_unit_views | INTEGER    |
++-----------------+------------+
+
+Submission_Stats:
++---------------------------+------------+
+| Column                    |   Type     |
++---------------------------+------------+
+|challenge_id               | INTEGER    |
+|total_submissions          | INTEGER    |
+|total_accepted_submissions | INTEGER    |
++---------------------------+------------+
+ 
+*/
+
+-- Solution 1: 
+-- using left join with View_Stats and Submission_Stats tables which contain multiple rows for each unit challenge_id
+-- if all four sums are 0 -> (a !=0 OR b != 0 OR c != 0 OR d != 0) = (a !=0 AND b != 0 AND c != 0 AND d != 0) 
+-- follow order: select .. from .. group by .. having (sum) .. order by..
+
+
+SELECT C1.contest_id, C1.hacker_id, C1.name, 
+SUM(total_submissions), SUM(total_accepted_submissions), SUM(total_views), SUM(total_unique_views)
+FROM 
+Contests C1 JOIN Colleges C2 ON C1.contest_id = C2.contest_id
+            JOIN Challenges C3 ON C2.college_id = C3.college_id
+LEFT JOIN 
+(SELECT challenge_id, SUM(total_views) as total_views, SUM(total_unique_views) as total_unique_views 
+           FROM View_Stats GROUP BY challenge_id) V on C3.challenge_id  = V.challenge_id
+LEFT JOIN 
+(SELECT challenge_id, SUM(total_submissions) as total_submissions, SUM(total_accepted_submissions) as total_accepted_submissions 
+           FROM Submission_Stats GROUP BY challenge_id) S on C3.challenge_id  = S.challenge_id
+GROUP BY C1.contest_id, C1.hacker_id, C1.name
+HAVING SUM(total_submissions)!=0 or
+       SUM(total_accepted_submissions) !=0 or
+       SUM(total_views)!=0 or
+       SUM(total_unique_views) !=0
+ORDER BY C1.contest_id;
+
+--Solution 2: not using left join, create a brand new dataset with Submission_Stats and View_Stats and add it to the list 
+of tables you are pulling data from.
+-- Select 0 as gigi means producing a new column called gigi with a value of O.
+
+select a.contest_id, a.hacker_id, a.name, sum(d.total_submissions), sum(d.total_accepted_submissions), 
+sum(d.total_views), sum(d.total_unique_views)
+
+from Contests a, Colleges b, Challenges c, 
+(select challenge_id, total_submissions, total_accepted_submissions, 0 as total_views, 0 as total_unique_views from Submission_Stats 
+union all 
+select challenge_id, 0, 0, total_views, total_unique_views from View_Stats) d
+
+where a.contest_id = b.contest_id and b.college_id = c.college_id and c.challenge_id = d.challenge_id
+
+group by a.contest_id, a.hacker_id, a.name
+
+having sum(d.total_submissions)!=0 and sum(d.total_accepted_submissions)!=0 and sum(d.total_views)!=0 and sum(d.total_unique_views)!=0
+
+order by a.contest_id;
