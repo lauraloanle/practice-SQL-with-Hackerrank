@@ -18,7 +18,7 @@ Note: There will be at least two entries in the table for each type of occupatio
 
 -- Solution:
 -- Use concat function to adds two or more strings together.
--- Use GROUP BY when there are multiple rows for one value and includes aggregate function in the command. This function also removes the duplicate values.
+-- Use GROUP BY when there are multiple rows for one value and includes aggregate function in the command. This function also removes the duplicated values.
 
 select concat(Name, "(", substring(occupation,1,1),")" ) 
 from occupations 
