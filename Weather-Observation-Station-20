@@ -1,0 +1,17 @@
+--Problem Statement
+/*
+A median is defined as a number separating the higher half of a data set from the lower half. Query the median of the Northern 
+Latitudes (LAT_N) from STATION and round your answer to  decimal places.
+
+Link of problem: https://www.hackerrank.com/challenges/weather-observation-station-20/problem?h_r=next-challenge&h_v=zen
+*/
+
+-- Solution:
+-- equating two subqueries that count the number of variables smaller than the median and those larger than thev median value 
+under WHERE clause.
+
+
+SELECT ROUND((S.LAT_N),4) MEDIAN FROM STATION S
+WHERE 
+(SELECT COUNT(LAT_N)FROM STATION WHERE LAT_N > S.LAT_N) = 
+(SELECT COUNT(LAT_N)FROM STATION WHERE LAT_N < S.LAT_N);
